@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore - E-Commerce Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .cart-bounce { animation: bounce 0.5s ease-in-out; }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-8">
+                    <h1 class="text-2xl font-bold text-blue-600 cursor-pointer" onclick="showPage('home')">TechStore</h1>
+                    <div class="hidden md:flex space-x-6">
+                        <button onclick="showPage('home')" class="nav-link text-gray-700 hover:text-blue-600 transition-colors">Home</button>
+                        <button onclick="showPage('products')" class="nav-link text-gray-700 hover:text-blue-600 transition-colors">Products</button>
+                        <button onclick="showPage('categories')" class="nav-link text-gray-700 hover:text-blue-600 transition-colors">Categories</button>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Search Bar -->
+                    <div class="relative hidden md:block">
+                        <input type="text" id="searchInput" placeholder="Search products..." 
+                               class="w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               onkeyup="handleSearch(event)">
+                        <button onclick="performSearch()" class="absolute right-2 top-2 text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Cart -->
+                    <button onclick="showPage('cart')" class="relative p-2 text-gray-700 hover:text-blue-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"></path>
+                        </svg>
+                        <span id="cartCount" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                    </button>
+                    
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <button id="userMenuBtn" onclick="toggleUserMenu()" class="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            <span id="userNameDisplay">Guest</span>
+                        </button>
+                        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                            <div id="guestMenu">
+                                <button onclick="showPage('login')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Login</button>
+                                <button onclick="showPage('register')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Register</button>
+                            </div>
+                            <div id="userMenu" class="hidden">
+                                <button onclick="showPage('profile')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Profile</button>
+                                <button onclick="showPage('orders')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">My Orders</button>
+                                <button onclick="showPage('wishlist')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Wishlist</button>
+                                <hr class="my-1">
+                                <button onclick="logout()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Logout</button>
+                            </div>
+                            <div id="adminMenu" class="hidden">
+                                <button onclick="showPage('admin')" class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 w-full text-left">Admin Panel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Home Page -->
+        <div id="homePage" class="page">
+            <!-- Hero Section -->
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white p-8 mb-8">
+                <div class="max-w-2xl">
+                    <h2 class="text-4xl font-bold mb-4">Welcome to TechStore</h2>
+                    <p class="text-xl mb-6">Discover the latest technology products at unbeatable prices</p>
+                    <button onclick="showPage('products')" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                        Shop Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- Featured Categories -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold mb-6">Shop by Category</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer" onclick="filterByCategory('Electronics')">
+                        <div class="text-4xl mb-4">📱</div>
+                        <h4 class="text-xl font-semibold mb-2">Electronics</h4>
+                        <p class="text-gray-600">Smartphones, tablets, and more</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer" onclick="filterByCategory('Computers')">
+                        <div class="text-4xl mb-4">💻</div>
+                        <h4 class="text-xl font-semibold mb-2">Computers</h4>
+                        <p class="text-gray-600">Laptops, desktops, and accessories</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer" onclick="filterByCategory('Gaming')">
+                        <div class="text-4xl mb-4">🎮</div>
+                        <h4 class="text-xl font-semibold mb-2">Gaming</h4>
+                        <p class="text-gray-600">Consoles, games, and peripherals</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Products -->
+            <div>
+                <h3 class="text-2xl font-bold mb-6">Featured Products</h3>
+                <div id="featuredProducts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Page -->
+        <div id="productsPage" class="page hidden">
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Filters Sidebar -->
+                <div class="lg:w-1/4">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold mb-4">Filters</h3>
+                        
+                        <!-- Category Filter -->
+                        <div class="mb-6">
+                            <h4 class="font-medium mb-2">Category</h4>
+                            <select id="categoryFilter" onchange="applyFilters()" class="w-full p-2 border border-gray-300 rounded">
+                                <option value="">All Categories</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Computers">Computers</option>
+                                <option value="Gaming">Gaming</option>
+                                <option value="Accessories">Accessories</option>
+                            </select>
+                        </div>
+
+                        <!-- Price Range -->
+                        <div class="mb-6">
+                            <h4 class="font-medium mb-2">Price Range</h4>
+                            <div class="flex space-x-2">
+                                <input type="number" id="minPrice" placeholder="Min" class="w-full p-2 border border-gray-300 rounded" onchange="applyFilters()">
+                                <input type="number" id="maxPrice" placeholder="Max" class="w-full p-2 border border-gray-300 rounded" onchange="applyFilters()">
+                            </div>
+                        </div>
+
+                        <!-- Sort By -->
+                        <div class="mb-6">
+                            <h4 class="font-medium mb-2">Sort By</h4>
+                            <select id="sortBy" onchange="applyFilters()" class="w-full p-2 border border-gray-300 rounded">
+                                <option value="name">Name</option>
+                                <option value="price-low">Price: Low to High</option>
+                                <option value="price-high">Price: High to Low</option>
+                                <option value="rating">Rating</option>
+                            </select>
+                        </div>
+
+                        <button onclick="clearFilters()" class="w-full bg-gray-200 text-gray-700 py-2 rounded hover:bg-gray-300 transition-colors">
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="lg:w-3/4">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Products</h2>
+                        <span id="productCount" class="text-gray-600">0 products found</span>
+                    </div>
+                    <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Products will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Detail Modal -->
+        <div id="productModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg max-w-4xl w-full max-h-screen overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 id="modalProductName" class="text-2xl font-bold"></h2>
+                        <button onclick="closeProductModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <div id="modalProductImage" class="text-8xl mb-4"></div>
+                            <div id="modalProductGallery" class="flex space-x-2">
+                                <!-- Thumbnail images would go here -->
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="mb-4">
+                                <span id="modalProductPrice" class="text-3xl font-bold text-blue-600"></span>
+                                <span id="modalProductOriginalPrice" class="text-lg text-gray-500 line-through ml-2"></span>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="flex items-center space-x-2">
+                                    <div id="modalProductRating" class="flex text-yellow-400"></div>
+                                    <span id="modalProductReviews" class="text-gray-600"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <h3 class="font-semibold mb-2">Description</h3>
+                                <p id="modalProductDescription" class="text-gray-700"></p>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <h3 class="font-semibold mb-2">Specifications</h3>
+                                <ul id="modalProductSpecs" class="text-gray-700 space-y-1">
+                                    <!-- Specs will be loaded here -->
+                                </ul>
+                            </div>
+                            
+                            <div class="flex space-x-4">
+                                <button id="modalAddToCart" class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                                    Add to Cart
+                                </button>
+                                <button id="modalAddToWishlist" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                    ❤️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart Page -->
+        <div id="cartPage" class="page hidden">
+            <h2 class="text-2xl font-bold mb-6">Shopping Cart</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <div id="cartItems" class="space-y-4">
+                        <!-- Cart items will be loaded here -->
+                    </div>
+                    <div id="emptyCart" class="hidden text-center py-12">
+                        <div class="text-6xl mb-4">🛒</div>
+                        <h3 class="text-xl font-semibold mb-2">Your cart is empty</h3>
+                        <p class="text-gray-600 mb-4">Add some products to get started</p>
+                        <button onclick="showPage('products')" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Continue Shopping
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-md p-6 sticky top-24">
+                        <h3 class="text-lg font-semibold mb-4">Order Summary</h3>
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between">
+                                <span>Subtotal:</span>
+                                <span id="cartSubtotal">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Shipping:</span>
+                                <span id="cartShipping">$9.99</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Tax:</span>
+                                <span id="cartTax">$0.00</span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="flex justify-between font-semibold text-lg">
+                                <span>Total:</span>
+                                <span id="cartTotal">$0.00</span>
+                            </div>
+                        </div>
+                        <button id="checkoutBtn" onclick="showPage('checkout')" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400" disabled>
+                            Proceed to Checkout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkout Page -->
+        <div id="checkoutPage" class="page hidden">
+            <h2 class="text-2xl font-bold mb-6">Checkout</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <form id="checkoutForm" class="space-y-6">
+                        <!-- Shipping Information -->
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-semibold mb-4">Shipping Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="text" name="firstName" placeholder="First Name" required class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="text" name="lastName" placeholder="Last Name" required class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="email" name="email" placeholder="Email" required class="md:col-span-2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="tel" name="phone" placeholder="Phone Number" required class="md:col-span-2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="text" name="address" placeholder="Street Address" required class="md:col-span-2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="text" name="city" placeholder="City" required class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <input type="text" name="zipCode" placeholder="ZIP Code" required class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <!-- Payment Information (Demo) -->
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-semibold mb-4">Payment Information <span class="text-sm text-red-500">(Demo - No Real Payment)</span></h3>
+                            <div class="space-y-4">
+                                <input type="text" placeholder="Card Number (Demo: 4111 1111 1111 1111)" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <input type="text" placeholder="MM/YY" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <input type="text" placeholder="CVV" class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <input type="text" placeholder="Cardholder Name" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div>
+                    <!-- Order Summary -->
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Order Summary</h3>
+                        <div id="checkoutItems" class="space-y-3 mb-4">
+                            <!-- Checkout items will be loaded here -->
+                        </div>
+                        <hr class="my-4">
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span>Subtotal:</span>
+                                <span id="checkoutSubtotal">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Shipping:</span>
+                                <span>$9.99</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Tax:</span>
+                                <span id="checkoutTax">$0.00</span>
+                            </div>
+                            <div class="flex justify-between font-semibold text-lg">
+                                <span>Total:</span>
+                                <span id="checkoutTotal">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="placeOrder()" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors">
+                        Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Page -->
+        <div id="loginPage" class="page hidden">
+            <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-8">
+                <h2 class="text-2xl font-bold text-center mb-6">Login</h2>
+                <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                    <input type="email" name="email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="password" name="password" placeholder="Password" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        Login
+                    </button>
+                </form>
+                <div class="text-center mt-4">
+                    <p class="text-gray-600">Don't have an account? 
+                        <button onclick="showPage('register')" class="text-blue-600 hover:underline">Register here</button>
+                    </p>
+                    <p class="text-sm text-gray-500 mt-2">Demo: admin@test.com / admin123 for admin access</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Page -->
+        <div id="registerPage" class="page hidden">
+            <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-8">
+                <h2 class="text-2xl font-bold text-center mb-6">Register</h2>
+                <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4">
+                    <input type="text" name="firstName" placeholder="First Name" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" name="lastName" placeholder="Last Name" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="email" name="email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="tel" name="phone" placeholder="Phone Number" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="password" name="password" placeholder="Password" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="password" name="confirmPassword" placeholder="Confirm Password" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        Register
+                    </button>
+                </form>
+                <div class="text-center mt-4">
+                    <p class="text-gray-600">Already have an account? 
+                        <button onclick="showPage('login')" class="text-blue-600 hover:underline">Login here</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Page -->
+        <div id="ordersPage" class="page hidden">
+            <h2 class="text-2xl font-bold mb-6">My Orders</h2>
+            <div id="ordersList" class="space-y-4">
+                <!-- Orders will be loaded here -->
+            </div>
+            <div id="noOrders" class="hidden text-center py-12">
+                <div class="text-6xl mb-4">📦</div>
+                <h3 class="text-xl font-semibold mb-2">No orders yet</h3>
+                <p class="text-gray-600 mb-4">Start shopping to see your orders here</p>
+                <button onclick="showPage('products')" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Start Shopping
+                </button>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminPage" class="page hidden">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold">Admin Dashboard</h2>
+                <p class="text-gray-600">Manage your e-commerce platform</p>
+            </div>
+
+            <!-- Admin Navigation -->
+            <div class="bg-white rounded-lg shadow-md mb-6">
+                <div class="flex space-x-1 p-1">
+                    <button onclick="showAdminSection('dashboard')" class="admin-tab-btn flex-1 py-2 px-4 rounded text-center transition-colors bg-blue-600 text-white">Dashboard</button>
+                    <button onclick="showAdminSection('products')" class="admin-tab-btn flex-1 py-2 px-4 rounded text-center transition-colors text-gray-600 hover:bg-gray-100">Products</button>
+                    <button onclick="showAdminSection('orders')" class="admin-tab-btn flex-1 py-2 px-4 rounded text-center transition-colors text-gray-600 hover:bg-gray-100">Orders</button>
+                    <button onclick="showAdminSection('users')" class="admin-tab-btn flex-1 py-2 px-4 rounded text-center transition-colors text-gray-600 hover:bg-gray-100">Users</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div id="adminDashboard" class="admin-section">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600">Total Sales</p>
+                                <p class="text-2xl font-bold text-green-600">$12,345</p>
+                            </div>
+                            <div class="text-3xl">💰</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600">Total Orders</p>
+                                <p class="text-2xl font-bold text-blue-600" id="adminTotalOrders">0</p>
+                            </div>
+                            <div class="text-3xl">📦</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600">Total Products</p>
+                                <p class="text-2xl font-bold text-purple-600" id="adminTotalProducts">0</p>
+                            </div>
+                            <div class="text-3xl">📱</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600">Total Users</p>
+                                <p class="text-2xl font-bold text-orange-600" id="adminTotalUsers">0</p>
+                            </div>
+                            <div class="text-3xl">👥</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold mb-4">Recent Orders</h3>
+                        <div id="adminRecentOrders" class="space-y-3">
+                            <!-- Recent orders will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold mb-4">Top Products</h3>
+                        <div id="adminTopProducts" class="space-y-3">
+                            <!-- Top products will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Management Section -->
+            <div id="adminProducts" class="admin-section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold">Product Management</h3>
+                    <button onclick="showAddProductForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        Add New Product
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminProductsTable" class="bg-white divide-y divide-gray-200">
+                                <!-- Products will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Management Section -->
+            <div id="adminOrders" class="admin-section hidden">
+                <h3 class="text-xl font-semibold mb-6">Order Management</h3>
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminOrdersTable" class="bg-white divide-y divide-gray-200">
+                                <!-- Orders will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Management Section -->
+            <div id="adminUsers" class="admin-section hidden">
+                <h3 class="text-xl font-semibold mb-6">User Management</h3>
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orders</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersTable" class="bg-white divide-y divide-gray-200">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Product Modal -->
+        <div id="addProductModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold">Add New Product</h2>
+                        <button onclick="closeAddProductModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <form id="addProductForm" onsubmit="handleAddProduct(event)" class="space-y-4">
+                        <input type="text" name="name" placeholder="Product Name" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select name="category" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Category</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Computers">Computers</option>
+                            <option value="Gaming">Gaming</option>
+                            <option value="Accessories">Accessories</option>
+                        </select>
+                        <input type="number" name="price" placeholder="Price" step="0.01" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" name="stock" placeholder="Stock Quantity" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <textarea name="description" placeholder="Product Description" rows="3" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        <input type="text" name="emoji" placeholder="Product Emoji (e.g., 📱)" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        
+                        <div class="flex space-x-4">
+                            <button type="button" onclick="closeAddProductModal()" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                                Add Product
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="fixed top-20 right-4 z-50 space-y-2">
+        <!-- Messages will be displayed here -->
+    </div>
+
+    <script>
+        // Global State Management
+        let currentUser = null;
+        let currentPage = 'home';
+        let cart = [];
+        let products = [];
+        let orders = [];
+        let users = [];
+        let filteredProducts = [];
+
+        // Initialize sample data
+        function initializeData() {
+            // Sample products
+            products = [
+                {
+                    id: 1,
+                    name: "iPhone 15 Pro",
+                    category: "Electronics",
+                    price: 999.99,
+                    originalPrice: 1099.99,
+                    stock: 50,
+                    rating: 4.8,
+                    reviews: 1234,
+                    emoji: "📱",
+                    description: "The latest iPhone with advanced camera system and A17 Pro chip.",
+                    specs: ["6.1-inch display", "A17 Pro chip", "48MP camera", "128GB storage"]
+                },
+                {
+                    id: 2,
+                    name: "MacBook Pro 16\"",
+                    category: "Computers",
+                    price: 2399.99,
+                    originalPrice: 2599.99,
+                    stock: 25,
+                    rating: 4.9,
+                    reviews: 856,
+                    emoji: "💻",
+                    description: "Powerful laptop for professionals with M3 chip and stunning display.",
+                    specs: ["16-inch Liquid Retina display", "M3 chip", "16GB RAM", "512GB SSD"]
+                },
+                {
+                    id: 3,
+                    name: "PlayStation 5",
+                    category: "Gaming",
+                    price: 499.99,
+                    originalPrice: 549.99,
+                    stock: 15,
+                    rating: 4.7,
+                    reviews: 2341,
+                    emoji: "🎮",
+                    description: "Next-gen gaming console with incredible graphics and fast loading.",
+                    specs: ["Custom AMD Zen 2 CPU", "16GB GDDR6 RAM", "825GB SSD", "4K gaming"]
+                },
+                {
+                    id: 4,
+                    name: "AirPods Pro",
+                    category: "Accessories",
+                    price: 249.99,
+                    originalPrice: 279.99,
+                    stock: 100,
+                    rating: 4.6,
+                    reviews: 3456,
+                    emoji: "🎧",
+                    description: "Premium wireless earbuds with active noise cancellation.",
+                    specs: ["Active Noise Cancellation", "Spatial Audio", "6 hours battery", "MagSafe charging"]
+                },
+                {
+                    id: 5,
+                    name: "Samsung Galaxy S24",
+                    category: "Electronics",
+                    price: 899.99,
+                    originalPrice: 999.99,
+                    stock: 40,
+                    rating: 4.5,
+                    reviews: 987,
+                    emoji: "📱",
+                    description: "Flagship Android phone with AI-powered features and excellent camera.",
+                    specs: ["6.2-inch Dynamic AMOLED", "Snapdragon 8 Gen 3", "50MP camera", "256GB storage"]
+                },
+                {
+                    id: 6,
+                    name: "Dell XPS 13",
+                    category: "Computers",
+                    price: 1299.99,
+                    originalPrice: 1399.99,
+                    stock: 30,
+                    rating: 4.4,
+                    reviews: 654,
+                    emoji: "💻",
+                    description: "Ultra-portable laptop with stunning InfinityEdge display.",
+                    specs: ["13.4-inch InfinityEdge display", "Intel Core i7", "16GB RAM", "512GB SSD"]
+                }
+            ];
+
+            // Sample users (for admin demo)
+            users = [
+                {
+                    id: 1,
+                    firstName: "John",
+                    lastName: "Doe",
+                    email: "john@example.com",
+                    phone: "+1234567890",
+                    joinDate: "2024-01-15",
+                    orderCount: 3
+                },
+                {
+                    id: 2,
+                    firstName: "Jane",
+                    lastName: "Smith",
+                    email: "jane@example.com",
+                    phone: "+1234567891",
+                    joinDate: "2024-02-20",
+                    orderCount: 1
+                }
+            ];
+
+            filteredProducts = [...products];
+            loadFeaturedProducts();
+            loadProductsGrid();
+            updateCartDisplay();
+        }
+
+        // Page Navigation
+        function showPage(page) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            
+            // Show selected page
+            document.getElementById(page + 'Page').classList.remove('hidden');
+            document.getElementById(page + 'Page').classList.add('fade-in');
+            
+            currentPage = page;
+
+            // Load page-specific content
+            switch(page) {
+                case 'products':
+                    loadProductsGrid();
+                    break;
+                case 'cart':
+                    loadCartItems();
+                    break;
+                case 'checkout':
+                    if (cart.length === 0) {
+                        showMessage('Your cart is empty!', 'error');
+                        showPage('cart');
+                        return;
+                    }
+                    loadCheckoutItems();
+                    break;
+                case 'orders':
+                    if (!currentUser) {
+                        showMessage('Please login to view orders', 'error');
+                        showPage('login');
+                        return;
+                    }
+                    loadUserOrders();
+                    break;
+                case 'admin':
+                    if (!currentUser || currentUser.role !== 'admin') {
+                        showMessage('Admin access required', 'error');
+                        showPage('home');
+                        return;
+                    }
+                    loadAdminDashboard();
+                    break;
+            }
+        }
+
+        // User Authentication
+        function handleLogin(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const email = formData.get('email');
+            const password = formData.get('password');
+
+            // Demo authentication
+            if (email === 'admin@test.com' && password === 'admin123') {
+                currentUser = {
+                    id: 999,
+                    firstName: 'Admin',
+                    lastName: 'User',
+                    email: email,
+                    role: 'admin'
+                };
+                showMessage('Admin login successful!', 'success');
+            } else {
+                currentUser = {
+                    id: 1,
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    email: email,
+                    role: 'user'
+                };
+                showMessage('Login successful!', 'success');
+            }
+
+            updateUserDisplay();
+            showPage('home');
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            if (formData.get('password') !== formData.get('confirmPassword')) {
+                showMessage('Passwords do not match!', 'error');
+                return;
+            }
+
+            currentUser = {
+                id: Date.now(),
+                firstName: formData.get('firstName'),
+                lastName: formData.get('lastName'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                role: 'user'
+            };
+
+            users.push(currentUser);
+            showMessage('Registration successful!', 'success');
+            updateUserDisplay();
+            showPage('home');
+        }
+
+        function logout() {
+            currentUser = null;
+            cart = [];
+            updateUserDisplay();
+            updateCartDisplay();
+            showMessage('Logged out successfully!', 'success');
+            showPage('home');
+        }
+
+        function updateUserDisplay() {
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const guestMenu = document.getElementById('guestMenu');
+            const userMenu = document.getElementById('userMenu');
+            const adminMenu = document.getElementById('adminMenu');
+
+            if (currentUser) {
+                userNameDisplay.textContent = currentUser.firstName;
+                guestMenu.classList.add('hidden');
+                userMenu.classList.remove('hidden');
+                
+                if (currentUser.role === 'admin') {
+                    adminMenu.classList.remove('hidden');
+                } else {
+                    adminMenu.classList.add('hidden');
+                }
+            } else {
+                userNameDisplay.textContent = 'Guest';
+                guestMenu.classList.remove('hidden');
+                userMenu.classList.add('hidden');
+                adminMenu.classList.add('hidden');
+            }
+        }
+
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Product Management
+        function loadFeaturedProducts() {
+            const container = document.getElementById('featuredProducts');
+            const featured = products.slice(0, 4);
+            
+            container.innerHTML = featured.map(product => createProductCard(product)).join('');
+        }
+
+        function loadProductsGrid() {
+            const container = document.getElementById('productsGrid');
+            const countElement = document.getElementById('productCount');
+            
+            container.innerHTML = filteredProducts.map(product => createProductCard(product)).join('');
+            countElement.textContent = `${filteredProducts.length} products found`;
+        }
+
+        function createProductCard(product) {
+            const discountPercent = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0;
+            
+            return `
+                <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" onclick="showProductDetail(${product.id})">
+                    <div class="p-6">
+                        <div class="text-6xl mb-4 text-center">${product.emoji}</div>
+                        <h3 class="text-lg font-semibold mb-2">${product.name}</h3>
+                        <p class="text-gray-600 text-sm mb-3">${product.category}</p>
+                        <div class="flex items-center mb-3">
+                            <div class="flex text-yellow-400 text-sm">
+                                ${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5 - Math.floor(product.rating))}
+                            </div>
+                            <span class="text-gray-500 text-sm ml-2">(${product.reviews})</span>
+                        </div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <span class="text-xl font-bold text-blue-600">$${product.price}</span>
+                                ${product.originalPrice ? `<span class="text-sm text-gray-500 line-through ml-2">$${product.originalPrice}</span>` : ''}
+                                ${discountPercent > 0 ? `<span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded ml-2">${discountPercent}% OFF</span>` : ''}
+                            </div>
+                        </div>
+                        <button onclick="event.stopPropagation(); addToCart(${product.id})" 
+                                class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showProductDetail(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            document.getElementById('modalProductName').textContent = product.name;
+            document.getElementById('modalProductImage').textContent = product.emoji;
+            document.getElementById('modalProductPrice').textContent = `$${product.price}`;
+            document.getElementById('modalProductOriginalPrice').textContent = product.originalPrice ? `$${product.originalPrice}` : '';
+            document.getElementById('modalProductRating').innerHTML = '★'.repeat(Math.floor(product.rating)) + '☆'.repeat(5 - Math.floor(product.rating));
+            document.getElementById('modalProductReviews').textContent = `(${product.reviews} reviews)`;
+            document.getElementById('modalProductDescription').textContent = product.description;
+            
+            const specsList = document.getElementById('modalProductSpecs');
+            specsList.innerHTML = product.specs.map(spec => `<li>• ${spec}</li>`).join('');
+            
+            document.getElementById('modalAddToCart').onclick = () => {
+                addToCart(productId);
+                closeProductModal();
+            };
+            
+            document.getElementById('productModal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').classList.add('hidden');
+        }
+
+        // Search and Filter
+        function handleSearch(event) {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            filteredProducts = products.filter(product => 
+                product.name.toLowerCase().includes(query) ||
+                product.category.toLowerCase().includes(query) ||
+                product.description.toLowerCase().includes(query)
+            );
+            
+            if (currentPage === 'products') {
+                loadProductsGrid();
+            } else {
+                showPage('products');
+            }
+        }
+
+        function filterByCategory(category) {
+            document.getElementById('categoryFilter').value = category;
+            applyFilters();
+            showPage('products');
+        }
+
+        function applyFilters() {
+            const category = document.getElementById('categoryFilter').value;
+            const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+            const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+            const sortBy = document.getElementById('sortBy').value;
+
+            filteredProducts = products.filter(product => {
+                const matchesCategory = !category || product.category === category;
+                const matchesPrice = product.price >= minPrice && product.price <= maxPrice;
+                return matchesCategory && matchesPrice;
+            });
+
+            // Sort products
+            switch(sortBy) {
+                case 'price-low':
+                    filteredProducts.sort((a, b) => a.price - b.price);
+                    break;
+                case 'price-high':
+                    filteredProducts.sort((a, b) => b.price - a.price);
+                    break;
+                case 'rating':
+                    filteredProducts.sort((a, b) => b.rating - a.rating);
+                    break;
+                default:
+                    filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            loadProductsGrid();
+        }
+
+        function clearFilters() {
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('minPrice').value = '';
+            document.getElementById('maxPrice').value = '';
+            document.getElementById('sortBy').value = 'name';
+            filteredProducts = [...products];
+            loadProductsGrid();
+        }
+
+        // Cart Management
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const existingItem = cart.find(item => item.productId === productId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    productId: productId,
+                    quantity: 1,
+                    price: product.price
+                });
+            }
+
+            updateCartDisplay();
+            showMessage(`${product.name} added to cart!`, 'success');
+            
+            // Add bounce animation to cart icon
+            document.getElementById('cartCount').classList.add('cart-bounce');
+            setTimeout(() => {
+                document.getElementById('cartCount').classList.remove('cart-bounce');
+            }, 500);
+        }
+
+        function updateCartQuantity(productId, change) {
+            const item = cart.find(item => item.productId === productId);
+            if (!item) return;
+
+            item.quantity += change;
+            
+            if (item.quantity <= 0) {
+                removeFromCart(productId);
+            } else {
+                updateCartDisplay();
+                if (currentPage === 'cart') {
+                    loadCartItems();
+                }
+            }
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.productId !== productId);
+            updateCartDisplay();
+            if (currentPage === 'cart') {
+                loadCartItems();
+            }
+            showMessage('Item removed from cart', 'success');
+        }
+
+        function updateCartDisplay() {
+            const cartCount = document.getElementById('cartCount');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCount.textContent = totalItems;
+
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            if (checkoutBtn) {
+                checkoutBtn.disabled = cart.length === 0;
+            }
+        }
+
+        function loadCartItems() {
+            const container = document.getElementById('cartItems');
+            const emptyCart = document.getElementById('emptyCart');
+
+            if (cart.length === 0) {
+                container.classList.add('hidden');
+                emptyCart.classList.remove('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            emptyCart.classList.add('hidden');
+
+            container.innerHTML = cart.map(item => {
+                const product = products.find(p => p.id === item.productId);
+                const subtotal = item.price * item.quantity;
+
+                return `
+                    <div class="bg-white rounded-lg shadow-md p-6 flex items-center space-x-4">
+                        <div class="text-4xl">${product.emoji}</div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold">${product.name}</h3>
+                            <p class="text-gray-600">${product.category}</p>
+                            <p class="text-blue-600 font-semibold">$${item.price}</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="updateCartQuantity(${item.productId}, -1)" 
+                                    class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors">
+                                -
+                            </button>
+                            <span class="font-semibold">${item.quantity}</span>
+                            <button onclick="updateCartQuantity(${item.productId}, 1)" 
+                                    class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors">
+                                +
+                            </button>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-lg font-semibold">$${subtotal.toFixed(2)}</p>
+                            <button onclick="removeFromCart(${item.productId})" 
+                                    class="text-red-500 hover:text-red-700 text-sm">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateCartTotals();
+        }
+
+        function updateCartTotals() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const shipping = subtotal > 0 ? 9.99 : 0;
+            const tax = subtotal * 0.08; // 8% tax
+            const total = subtotal + shipping + tax;
+
+            document.getElementById('cartSubtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('cartShipping').textContent = subtotal > 0 ? `$${shipping.toFixed(2)}` : '$0.00';
+            document.getElementById('cartTax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
+        }
+
+        // Checkout Process
+        function loadCheckoutItems() {
+            const container = document.getElementById('checkoutItems');
+            
+            container.innerHTML = cart.map(item => {
+                const product = products.find(p => p.id === item.productId);
+                return `
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-2xl">${product.emoji}</span>
+                            <div>
+                                <p class="font-medium">${product.name}</p>
+                                <p class="text-sm text-gray-600">Qty: ${item.quantity}</p>
+                            </div>
+                        </div>
+                        <span class="font-semibold">$${(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                `;
+            }).join('');
+
+            updateCheckoutTotals();
+        }
+
+        function updateCheckoutTotals() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const shipping = 9.99;
+            const tax = subtotal * 0.08;
+            const total = subtotal + shipping + tax;
+
+            document.getElementById('checkoutSubtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('checkoutTax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('checkoutTotal').textContent = `$${total.toFixed(2)}`;
+        }
+
+        function placeOrder() {
+            if (!currentUser) {
+                showMessage('Please login to place an order', 'error');
+                showPage('login');
+                return;
+            }
+
+            const form = document.getElementById('checkoutForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const order = {
+                id: Date.now(),
+                userId: currentUser.id,
+                customerName: `${currentUser.firstName} ${currentUser.lastName}`,
+                items: [...cart],
+                subtotal: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                shipping: 9.99,
+                tax: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.08,
+                total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 9.99 + (cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.08),
+                status: 'Processing',
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            orders.push(order);
+            cart = [];
+            updateCartDisplay();
+
+            showMessage('Order placed successfully! Order ID: ' + order.id, 'success');
+            showPage('orders');
+        }
+
+        // Order Management
+        function loadUserOrders() {
+            const container = document.getElementById('ordersList');
+            const noOrders = document.getElementById('noOrders');
+            
+            const userOrders = orders.filter(order => order.userId === currentUser.id);
+
+            if (userOrders.length === 0) {
+                container.classList.add('hidden');
+                noOrders.classList.remove('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            noOrders.classList.add('hidden');
+
+            container.innerHTML = userOrders.map(order => `
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold">Order #${order.id}</h3>
+                            <p class="text-gray-600">Placed on ${order.date}</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-sm ${getStatusColor(order.status)}">${order.status}</span>
+                    </div>
+                    
+                    <div class="space-y-2 mb-4">
+                        ${order.items.map(item => {
+                            const product = products.find(p => p.id === item.productId);
+                            return `
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-2xl">${product.emoji}</span>
+                                        <div>
+                                            <p class="font-medium">${product.name}</p>
+                                            <p class="text-sm text-gray-600">Qty: ${item.quantity}</p>
+                                        </div>
+                                    </div>
+                                    <span>$${(item.price * item.quantity).toFixed(2)}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <div class="flex justify-between font-semibold">
+                            <span>Total:</span>
+                            <span>$${order.total.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusColor(status) {
+            switch(status) {
+                case 'Processing': return 'bg-yellow-100 text-yellow-800';
+                case 'Shipped': return 'bg-blue-100 text-blue-800';
+                case 'Delivered': return 'bg-green-100 text-green-800';
+                case 'Cancelled': return 'bg-red-100 text-red-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        // Admin Panel
+        function showAdminSection(section) {
+            // Update tab buttons
+            document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+            });
+            event.target.classList.add('bg-blue-600', 'text-white');
+            event.target.classList.remove('text-gray-600', 'hover:bg-gray-100');
+
+            // Hide all sections
+            document.querySelectorAll('.admin-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // Show selected section
+            document.getElementById('admin' + section.charAt(0).toUpperCase() + section.slice(1)).classList.remove('hidden');
+
+            // Load section-specific data
+            switch(section) {
+                case 'dashboard':
+                    loadAdminDashboard();
+                    break;
+                case 'products':
+                    loadAdminProducts();
+                    break;
+                case 'orders':
+                    loadAdminOrders();
+                    break;
+                case 'users':
+                    loadAdminUsers();
+                    break;
+            }
+        }
+
+        function loadAdminDashboard() {
+            document.getElementById('adminTotalOrders').textContent = orders.length;
+            document.getElementById('adminTotalProducts').textContent = products.length;
+            document.getElementById('adminTotalUsers').textContent = users.length;
+
+            // Load recent orders
+            const recentOrders = orders.slice(-5).reverse();
+            document.getElementById('adminRecentOrders').innerHTML = recentOrders.map(order => `
+                <div class="flex justify-between items-center py-2 border-b">
+                    <div>
+                        <p class="font-medium">Order #${order.id}</p>
+                        <p class="text-sm text-gray-600">${order.customerName}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold">$${order.total.toFixed(2)}</p>
+                        <span class="text-xs px-2 py-1 rounded ${getStatusColor(order.status)}">${order.status}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Load top products (mock data)
+            const topProducts = products.slice(0, 5);
+            document.getElementById('adminTopProducts').innerHTML = topProducts.map(product => `
+                <div class="flex justify-between items-center py-2 border-b">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">${product.emoji}</span>
+                        <div>
+                            <p class="font-medium">${product.name}</p>
+                            <p class="text-sm text-gray-600">${product.category}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold">$${product.price}</p>
+                        <p class="text-sm text-gray-600">${product.stock} in stock</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadAdminProducts() {
+            const tbody = document.getElementById('adminProductsTable');
+            tbody.innerHTML = products.map(product => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <span class="text-2xl mr-3">${product.emoji}</span>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">${product.name}</div>
+                                <div class="text-sm text-gray-500">${product.description.substring(0, 50)}...</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.category}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${product.price}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.stock}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="editProduct(${product.id})" class="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
+                        <button onclick="deleteProduct(${product.id})" class="text-red-600 hover:text-red-900">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function loadAdminOrders() {
+            const tbody = document.getElementById('adminOrdersTable');
+            tbody.innerHTML = orders.map(order => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${order.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${order.customerName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${order.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${order.total.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <select onchange="updateOrderStatus(${order.id}, this.value)" class="text-sm border border-gray-300 rounded px-2 py-1">
+                            <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                            <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                            <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                            <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="viewOrderDetails(${order.id})" class="text-blue-600 hover:text-blue-900">View</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function loadAdminUsers() {
+            const tbody = document.getElementById('adminUsersTable');
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${user.firstName} ${user.lastName}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.email}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.phone}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.joinDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.orderCount}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="viewUserDetails(${user.id})" class="text-blue-600 hover:text-blue-900">View</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.status = newStatus;
+                showMessage(`Order #${orderId} status updated to ${newStatus}`, 'success');
+            }
+        }
+
+        function showAddProductForm() {
+            document.getElementById('addProductModal').classList.remove('hidden');
+        }
+
+        function closeAddProductModal() {
+            document.getElementById('addProductModal').classList.add('hidden');
+            document.getElementById('addProductForm').reset();
+        }
+
+        function handleAddProduct(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            const newProduct = {
+                id: Date.now(),
+                name: formData.get('name'),
+                category: formData.get('category'),
+                price: parseFloat(formData.get('price')),
+                stock: parseInt(formData.get('stock')),
+                rating: 4.0,
+                reviews: 0,
+                emoji: formData.get('emoji'),
+                description: formData.get('description'),
+                specs: ['New product', 'High quality', 'Latest technology']
+            };
+
+            products.push(newProduct);
+            filteredProducts = [...products];
+            
+            showMessage('Product added successfully!', 'success');
+            closeAddProductModal();
+            loadAdminProducts();
+            loadProductsGrid();
+        }
+
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                products = products.filter(p => p.id !== productId);
+                filteredProducts = [...products];
+                showMessage('Product deleted successfully!', 'success');
+                loadAdminProducts();
+                loadProductsGrid();
+            }
+        }
+
+        // Utility Functions
+        function showMessage(message, type = 'info') {
+            const container = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            
+            messageDiv.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg slide-in`;
+            messageDiv.textContent = message;
+            
+            container.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeData();
+            updateUserDisplay();
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('#userMenuBtn')) {
+                    document.getElementById('userDropdown').classList.add('hidden');
+                }
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97cc1e90a5f44413',t:'MTc1NzQ3Nzg4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
